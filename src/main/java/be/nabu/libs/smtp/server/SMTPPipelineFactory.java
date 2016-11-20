@@ -41,6 +41,13 @@ public class SMTPPipelineFactory implements PipelineFactory {
 	public Pipeline newPipeline(NIOServer server, SelectionKey key) throws IOException {
 		SMTPMessageParserFactory requestParserFactory = new SMTPMessageParserFactory(serverName, "defaultRealm", validator, authenticator, context, sslServerMode);
 		
+		ExceptionFormatter<Part, String> exceptionFormatter = new ExceptionFormatter<Part, String>() {
+			@Override
+			public String format(Part request, Exception e) {
+				return "500 " + e.getMessage();
+			}
+		};
+		
 		MessagePipelineImpl<Part, String> pipeline = new MessagePipelineImpl<Part, String>(
 			server,
 			key,
@@ -56,19 +63,14 @@ public class SMTPPipelineFactory implements PipelineFactory {
 					};
 				}
 			},
-			new SMTPMessageProcessFactory(),
+			new SMTPMessageProcessFactory(server.getDispatcher(), exceptionFormatter),
 			new KeepAliveDecider<String>() {
 				@Override
 				public boolean keepConnectionAlive(String response) {
 					return response != null && !response.startsWith("221 ");
 				}
 			},
-			new ExceptionFormatter<Part, String>() {
-				@Override
-				public String format(Part request, Exception e) {
-					return "500 " + e.getMessage();
-				}
-			}
+			exceptionFormatter
 		);
 		
 		requestParserFactory.setPipeline(pipeline);
