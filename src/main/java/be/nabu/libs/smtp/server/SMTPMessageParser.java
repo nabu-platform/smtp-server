@@ -164,7 +164,7 @@ public class SMTPMessageParser implements MessageParser<Part> {
 					}
 					token = factory.getAuthenticator().authenticate(factory.getRealm(), new BasicPrincipalImpl(authenticationId, password));
 					if (token == null) {
-						throw new SMTPException(513);
+						pipeline.getResponseQueue().offer("535 Wrong user/password");
 					}
 					else {
 						pipeline.getResponseQueue().offer("235 2.7.0 Authentication successful");
@@ -183,10 +183,12 @@ public class SMTPMessageParser implements MessageParser<Part> {
 				}
 				else if (request.equals("STARTTLS")) {
 					if (factory.getContext() == null) {
-						throw new SMTPException(500);
+						pipeline.getResponseQueue().offer("500 STARTTLS is not supported");
 					}
-					pipeline.getResponseQueue().offer("220 Ready to start TLS");
-					((MessagePipelineImpl<Part, String>) pipeline).startTls(factory.getContext(), factory.getSslServerMode());
+					else {
+						pipeline.getResponseQueue().offer("220 Ready to start TLS");
+						((MessagePipelineImpl<Part, String>) pipeline).startTls(factory.getContext(), factory.getSslServerMode());
+					}
 				}
 				else if (request.equals("RSET")) {
 					from = null;

@@ -44,6 +44,7 @@ public class SMTPPipelineFactory implements PipelineFactory {
 		ExceptionFormatter<Part, String> exceptionFormatter = new ExceptionFormatter<Part, String>() {
 			@Override
 			public String format(Part request, Exception e) {
+				System.out.println("FORMATTING EXCEPTION: " + e.getMessage());
 				return "500 " + e.getMessage();
 			}
 		};
