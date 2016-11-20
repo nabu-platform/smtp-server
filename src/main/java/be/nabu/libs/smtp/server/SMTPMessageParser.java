@@ -3,9 +3,13 @@ package be.nabu.libs.smtp.server;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -264,6 +268,7 @@ public class SMTPMessageParser implements MessageParser<Part> {
 				if (authorizationId != null && !authorizationId.trim().isEmpty()) {
 					parse.setHeader(new MimeHeader("X-Requested-Authorization-Id", authorizationId));
 				}
+				parse.setHeader(new MimeHeader("Received", "from " + remoteName + " by " + factory.getServerName(), getDateFormatter().format(new Date())));
 				message = parse;
 				done = true;
 				pipeline.getResponseQueue().offer("250 Ok, generated id: " + identifier);
@@ -272,6 +277,17 @@ public class SMTPMessageParser implements MessageParser<Part> {
 		if (isDone() && initialBuffer.remainingData() > 0) {
 			content.pushback(initialBuffer);
 		}
+	}
+	
+	private static ThreadLocal<SimpleDateFormat> dateParser = new ThreadLocal<SimpleDateFormat>();
+	
+	private static SimpleDateFormat getDateFormatter() {
+		if (dateParser.get() == null) {
+			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US);
+			simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+			dateParser.set(simpleDateFormat);
+		}
+		return dateParser.get();
 	}
 
 	private List<Integer> findOffsets(byte[] decoded, char c) {
