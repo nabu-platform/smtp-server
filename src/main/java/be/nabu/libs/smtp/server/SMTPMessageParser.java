@@ -178,7 +178,7 @@ public class SMTPMessageParser implements MessageParser<Part> {
 					pipeline.getResponseQueue().offer("354 End data with <CR><LF>.<CR><LF>");
 				}
 				else if (request.equals("QUIT")) {
-					pipeline.getResponseQueue().offer("221 Bye");
+					pipeline.getResponseQueue().offer("221 I'll be back");
 					isClosed = true;
 				}
 				else if (request.equals("STARTTLS")) {
