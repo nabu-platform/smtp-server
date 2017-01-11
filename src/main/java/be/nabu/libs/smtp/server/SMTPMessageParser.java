@@ -188,6 +188,9 @@ public class SMTPMessageParser implements MessageParser<Part> {
 					else {
 						pipeline.getResponseQueue().offer("220 Ready to start TLS");
 						((MessagePipelineImpl<Part, String>) pipeline).startTls(factory.getContext(), factory.getSslServerMode());
+						// according to spec, starttls has to "reset" the connection throwing away any data it had from before it was a secure connection
+						// http://www.ietf.org/rfc/rfc3207.txt (section 4.2)
+						remoteName = null;
 					}
 				}
 				else if (request.equals("RSET")) {
@@ -270,7 +273,7 @@ public class SMTPMessageParser implements MessageParser<Part> {
 				if (authorizationId != null && !authorizationId.trim().isEmpty()) {
 					parse.setHeader(new MimeHeader("X-Requested-Authorization-Id", authorizationId));
 				}
-				parse.setHeader(new MimeHeader("Received", "from " + remoteName + " by " + factory.getServerName(), getDateFormatter().format(new Date())));
+				parse.setHeader(new MimeHeader("Received", "from " + (remoteName == null ? "anonymous" : remoteName) + " by " + factory.getServerName(), getDateFormatter().format(new Date())));
 				message = parse;
 				done = true;
 				pipeline.getResponseQueue().offer("250 Ok, generated id: " + identifier);
