@@ -59,7 +59,7 @@ public class SMTPPipelineFactory implements PipelineFactory {
 					return new MessageFormatter<String>() {
 						@Override
 						public ReadableContainer<ByteBuffer> format(String message) {
-							return IOUtils.wrap((message + "\n").getBytes(), true);
+							return IOUtils.wrap((message + "\r\n").getBytes(), true);
 						}
 					};
 				}

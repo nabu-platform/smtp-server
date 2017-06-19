@@ -179,7 +179,8 @@ public class SMTPMessageParser implements MessageParser<Part> {
 				}
 				else if (request.equals("QUIT")) {
 					pipeline.getResponseQueue().offer("221 I'll be back");
-					isClosed = true;
+					// only close once the response has been sent, otherwise the client will register it as a failed disconnect
+//					isClosed = true;
 				}
 				else if (request.equals("STARTTLS")) {
 					if (factory.getContext() == null) {
